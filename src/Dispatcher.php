@@ -1,32 +1,30 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Polus\Router\FastRoute;
 
-use Polus\Router\RouteInterface;
-use Polus\Router\RouterDispatcherInterface;
 use FastRoute\Dispatcher as FastRouteDispatcher;
+use FastRoute\RouteCollector;
+use Polus\Router\Route;
+use Polus\Router\RouterDispatcher;
 use Psr\Http\Message\ServerRequestInterface;
 
-class Dispatcher implements RouterDispatcherInterface
+class Dispatcher implements RouterDispatcher
 {
-    /** @var string */
-    private $dispatcherClass;
-    /** @var \FastRoute\RouteCollector */
-    private $routeCollector;
+    private string $dispatcherClass;
+    private RouteCollector $routeCollector;
 
-    public function __construct(string $dispatcherClass, \FastRoute\RouteCollector $routeCollector)
+    public function __construct(string $dispatcherClass, RouteCollector $routeCollector)
     {
         $this->dispatcherClass = $dispatcherClass;
         $this->routeCollector = $routeCollector;
     }
 
-    public function dispatch(ServerRequestInterface $request): RouteInterface
+    public function dispatch(ServerRequestInterface $request): Route
     {
         /** @var FastRouteDispatcher $dispatcher */
         $dispatcher = new $this->dispatcherClass($this->routeCollector->getData());
         $routeInfo = $dispatcher->dispatch($request->getMethod(), $request->getUri()->getPath());
 
-        return new Route($routeInfo, $request->getMethod());
+        return new FastRoute($routeInfo, $request->getMethod());
     }
 }

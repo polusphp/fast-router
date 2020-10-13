@@ -1,14 +1,13 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Polus\Router\FastRoute;
 
 use FastRoute\RouteCollector;
-use Polus\Router\RouterCollectionInterface;
+use Polus\Router\RouterCollection as BaseRouterCollection;
 
-class RouterCollection implements RouterCollectionInterface
+class RouterCollection implements BaseRouterCollection
 {
-    private $collector;
+    private RouteCollector $collector;
 
     public function __construct(RouteCollector $collector)
     {
