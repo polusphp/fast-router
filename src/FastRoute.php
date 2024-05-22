@@ -3,40 +3,54 @@
 namespace Polus\Router\FastRoute;
 
 use FastRoute\Dispatcher as FastRouteDispatcher;
+use Polus\Adr\Interfaces\Action;
 use Polus\Router\Route;
-use Polus\Router\RouterDispatcher;
+use Polus\Router\RouteStatus;
 
 class FastRoute implements Route
 {
-    private array $routeInfo;
-
+    private RouteStatus $routeStatus;
+    /** @var list<string> */
+    private array $allowedMethods = [];
+    /** @var array<string, mixed> */
+    private array $attributes = [];
     private string $requestMethod;
+    private null|string|Action $handler;
 
     public function __construct(array $routeInfo, string $requestMethod)
     {
-        $this->routeInfo = $routeInfo;
         $this->requestMethod = $requestMethod;
+        $this->routeStatus = match ($routeInfo[0]) {
+            FastRouteDispatcher::NOT_FOUND => RouteStatus::NotFound,
+            FastRouteDispatcher::METHOD_NOT_ALLOWED => RouteStatus::MethodNotAllowed,
+            default => RouteStatus::Found,
+        };
+        if ($this->routeStatus === RouteStatus::MethodNotAllowed) {
+            $this->allowedMethods = $routeInfo[1];
+        }
+        elseif (
+            is_string($routeInfo[1])
+            || $routeInfo[1] instanceof Action
+            || $routeInfo[0] === null
+        ) {
+            $this->handler = $routeInfo[1];
+            $this->attributes = $routeInfo[2];
+        }
     }
 
-    public function getStatus(): int
+    public function getStatus(): RouteStatus
     {
-        switch ($this->routeInfo[0]) {
-            case FastRouteDispatcher::NOT_FOUND:
-                return RouterDispatcher::NOT_FOUND;
-            case FastRouteDispatcher::METHOD_NOT_ALLOWED:
-                return RouterDispatcher::METHOD_NOT_ALLOWED;
-        }
-        return RouterDispatcher::FOUND;
+        return $this->routeStatus;
     }
 
     public function getAllows(): array
     {
-        return $this->routeInfo[0] === FastRouteDispatcher::METHOD_NOT_ALLOWED ? $this->routeInfo[1] : [];
+        return $this->allowedMethods;
     }
 
-    public function getHandler()
+    public function getHandler(): Action|string|null
     {
-        return $this->routeInfo[1];
+        return $this->handler;
     }
 
     public function getMethod(): string
@@ -46,6 +60,6 @@ class FastRoute implements Route
 
     public function getAttributes(): array
     {
-        return $this->routeInfo[2] ?? [];
+        return $this->attributes;
     }
 }

@@ -8,16 +8,12 @@ use Polus\Router\Route;
 use Polus\Router\RouterDispatcher;
 use Psr\Http\Message\ServerRequestInterface;
 
-class Dispatcher implements RouterDispatcher
+final readonly class Dispatcher implements RouterDispatcher
 {
-    private string $dispatcherClass;
-    private RouteCollector $routeCollector;
-
-    public function __construct(string $dispatcherClass, RouteCollector $routeCollector)
-    {
-        $this->dispatcherClass = $dispatcherClass;
-        $this->routeCollector = $routeCollector;
-    }
+    public function __construct(
+        private string $dispatcherClass,
+        private RouteCollector $routeCollector,
+    ) {}
 
     public function dispatch(ServerRequestInterface $request): Route
     {
