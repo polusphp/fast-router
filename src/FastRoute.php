@@ -28,13 +28,9 @@ class FastRoute implements Route
         if ($this->routeStatus === RouteStatus::MethodNotAllowed) {
             $this->allowedMethods = $routeInfo[1];
         }
-        elseif (
-            is_string($routeInfo[1])
-            || $routeInfo[1] instanceof Action
-            || $routeInfo[0] === null
-        ) {
+        elseif (isset($routeInfo[1]) && (is_string($routeInfo[1]) || $routeInfo[1] instanceof Action)) {
             $this->handler = $routeInfo[1];
-            $this->attributes = $routeInfo[2];
+            $this->attributes = $routeInfo[2] ?? [];
         }
     }
 
